@@ -59,7 +59,7 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
         appliance_mains_dfs = all_appliances_mains_lst[appliance_index]
 
         no_of_homes = len(appliance_mains_dfs)
-        if 'mlt' in model_name:
+        if 'mlt' not in model_name:
                 model_path = os.path.join(dir_name, "%s.pth"%(appliance_name))
         else:
                 model_path = os.path.join(dir_name, "weights.pth")

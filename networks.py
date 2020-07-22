@@ -116,6 +116,7 @@ class Seq2Point(nn.Module):
 
 class mtl_single(nn.Module):
   def __init__(self, sequence_length, cuda):
+    set_seed()
     super(mtl_single, self).__init__()
 
     dummy_model = dummy_network(sequence_length,cuda)
@@ -148,6 +149,7 @@ class mtl_single(nn.Module):
 
 class MTLSeq2Point(nn.Module):
   def __init__(self, sequence_length, num_app, cuda):
+    set_seed()
     super(MTLSeq2Point, self).__init__()
 
 
