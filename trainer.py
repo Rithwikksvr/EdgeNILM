@@ -21,25 +21,28 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 from functions import *
-from networks import Seq2Point
+from networks import *
 
 
 
 cuda=True
 
-appliances =  ["fridge", "washing machine","dish washer"]
-
-
+appliances =  ["washing machine","fridge", "dish washer"]
 
 method=sys.argv[1]
 
+if 'mtl' in method:
+  n_epochs=60
+else:
+  n_epochs=20
+
 val_prop = 0.4
-n_epochs=20
+
 batch_size=64
 fractions_to_remove = [0.3,0.6,0.9]
 ranks = [1,2,4,8]
 folds = [1,2,3]
-sequence_lengths = [499, 99]
+sequence_lengths = [ 499, 99]
 iterative_increment = 0.1
 start = time.time()
 
@@ -108,6 +111,34 @@ for fold_number in folds:
             cp_decompose_model(tensor_decomposition_model, rank)
             tensor_decomposition_model.cuda()
           train_fold(td_models, 'tensor_decomposition_rank_%s'%(rank), appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
+    
+    elif method=='fully_shared_mtl':
+      print ( "Training fold %s with %s method using sequence length %s"%(fold_number, 'multi task learning model', sequence_length))          
+      
+      mtl_model = [FullySharedMTL(sequence_length, len(appliances), cuda)]
+      train_fold(mtl_model, method, appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
+
+    elif method=='normal_mtl':
+      print ( "Training fold %s with %s method using sequence length %s"%(fold_number, 'multi task learning model', sequence_length))          
+      
+      mtl_model = [MTLSeq2Point(sequence_length, len(appliances), cuda)]
+      train_fold(mtl_model, method, appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
+
+
+    # elif method=='global_pruning':
+    #   for fraction_to_remove in fractions_to_remove:        
+    #     print ( "Training fold %s with %s method using sequence length %s and removing %s percent of weights"%(fold_number, method , sequence_length, int(fraction_to_remove*100)))
+    #     # This one takes a lot of time!!
+    #     dir_name = "fold_%s_models"%(fold_number)
+    #     dir_name = os.path.join(dir_name, "sequence_length_%s"%(sequence_length))
+    #     dir_name = os.path.join(dir_name, 'unpruned_model')
+    #     pruned_models = [torch.load(os.path.join(dir_name,'%s.pth'%(appliance_name))) for appliance_name in appliances]
+    #     for pruned_model in pruned_models:
+    #       global_pruning(pruned_model, fraction_to_remove)
+    #       pruned_model.cuda()
+    #     percent_to_remove = int(fraction_to_remove*100)
+        
+        # train_fold(pruned_models, 'global_pruned_model_%s_percent'%(percent_to_remove), appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
 
 end = time.time()
 

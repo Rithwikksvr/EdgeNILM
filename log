@@ -1,0 +1,168 @@
+Training fold 1 with tensor method using sequence length 99 using rank 1
+--------------------------------------------------
+Started Training washing machine Model
+Number of training samples: 103850
+Number of validation samples: 69232
+Epoch 0 Loss: 58.020657
+Best validation loss: 50.607277
+Best validation loss: 49.17088
+Best validation loss: 48.127068
+Epoch 1 washing machine Training loss: 57.562856773086935 ; Val Loss: 48.127068
+Best validation loss: 47.95028
+Epoch 2 washing machine Training loss: 57.5564696223526 ; Val Loss: 47.95028
+Epoch 3 washing machine Training loss: 57.53924658571831 ; Val Loss: 48.151337
+Epoch 4 washing machine Training loss: 57.573882266959565 ; Val Loss: 48.337605
+Epoch 5 washing machine Training loss: 57.58364055493145 ; Val Loss: 48.611652
+Epoch 6 washing machine Training loss: 57.56679001101709 ; Val Loss: 49.155144
+Epoch 7 washing machine Training loss: 57.54183679772366 ; Val Loss: 50.212536
+Epoch 8 washing machine Training loss: 57.492500322259325 ; Val Loss: 51.115498
+Epoch 9 washing machine Training loss: 57.40666429832183 ; Val Loss: 51.72091
+Epoch 10 washing machine Training loss: 57.356204957639434 ; Val Loss: 50.771175
+Epoch 11 washing machine Training loss: 57.43380287332596 ; Val Loss: 51.72414
+Epoch 12 washing machine Training loss: 57.37307263649475 ; Val Loss: 51.823975
+Epoch 13 washing machine Training loss: 57.3609127569922 ; Val Loss: 52.066772
+Epoch 14 washing machine Training loss: 57.350957288239584 ; Val Loss: 52.30555
+Epoch 15 washing machine Training loss: 57.36515471163089 ; Val Loss: 52.40192
+Epoch 16 washing machine Training loss: 57.326620553105194 ; Val Loss: 52.350285
+Epoch 17 washing machine Training loss: 57.340382305995526 ; Val Loss: 52.470074
+Epoch 18 washing machine Training loss: 57.337338880175444 ; Val Loss: 52.58508
+Epoch 19 washing machine Training loss: 57.34100173590189 ; Val Loss: 52.373207
+Epoch 20 washing machine Training loss: 57.343450673602824 ; Val Loss: 52.704918
+Epoch 21 washing machine Training loss: 57.37829455452621 ; Val Loss: 53.078022
+Epoch 22 washing machine Training loss: 57.239292382687815 ; Val Loss: 52.60464
+Epoch 23 washing machine Training loss: 57.3465376317255 ; Val Loss: 53.111477
+Epoch 24 washing machine Training loss: 57.32626066561204 ; Val Loss: 53.119095
+Epoch 25 washing machine Training loss: 57.34156549217608 ; Val Loss: 53.27489
+Epoch 26 washing machine Training loss: 57.328419602497426 ; Val Loss: 53.361343
+Epoch 27 washing machine Training loss: 57.31389433693771 ; Val Loss: 53.39991
+Epoch 28 washing machine Training loss: 57.323959605436656 ; Val Loss: 53.456436
+Epoch 29 washing machine Training loss: 57.3255419867843 ; Val Loss: 53.499107
+Epoch 30 washing machine Training loss: 57.33738029419335 ; Val Loss: 53.666973
+Epoch 31 washing machine Training loss: 57.307423811879374 ; Val Loss: 53.72636
+Epoch 32 washing machine Training loss: 57.296233516891085 ; Val Loss: 53.751144
+Epoch 33 washing machine Training loss: 57.22092702999084 ; Val Loss: 53.642727
+Epoch 34 washing machine Training loss: 57.34354952728619 ; Val Loss: 53.845226
+Epoch 35 washing machine Training loss: 57.31687927469664 ; Val Loss: 53.76668
+Epoch 36 washing machine Training loss: 57.31398818984527 ; Val Loss: 53.797325
+Epoch 37 washing machine Training loss: 57.27720746475263 ; Val Loss: 53.861332
+Epoch 38 washing machine Training loss: 57.2866551171414 ; Val Loss: 54.051697
+Epoch 39 washing machine Training loss: 57.29000614440628 ; Val Loss: 53.96863
+Epoch 40 washing machine Training loss: 57.31334124253723 ; Val Loss: 54.107986
+Epoch 41 washing machine Training loss: 57.29000485122572 ; Val Loss: 54.150177
+Epoch 42 washing machine Training loss: 57.250946512766085 ; Val Loss: 53.97151
+Epoch 43 washing machine Training loss: 57.2998213335169 ; Val Loss: 54.21141
+Epoch 44 washing machine Training loss: 57.29700027385556 ; Val Loss: 54.261013
+Epoch 45 washing machine Training loss: 57.26940353680009 ; Val Loss: 54.327198
+Epoch 46 washing machine Training loss: 57.25518136267317 ; Val Loss: 54.33454
+Epoch 47 washing machine Training loss: 57.294403829985626 ; Val Loss: 54.30273
+Epoch 48 washing machine Training loss: 57.2634346189284 ; Val Loss: 54.336727
+Epoch 49 washing machine Training loss: 57.27882551662926 ; Val Loss: 54.300114
+Best validation loss: 47.46341
+Best validation loss: 46.83239
+Epoch 50 washing machine Training loss: 57.10862741518049 ; Val Loss: 46.83239
+Epoch 51 washing machine Training loss: 57.45716447628508 ; Val Loss: 54.28743
+Epoch 52 washing machine Training loss: 57.28923553775193 ; Val Loss: 54.18954
+Epoch 53 washing machine Training loss: 57.26862085807237 ; Val Loss: 54.180027
+Epoch 54 washing machine Training loss: 57.251793925748416 ; Val Loss: 54.30439
+Epoch 55 washing machine Training loss: 57.256872910908704 ; Val Loss: 54.270817
+Epoch 56 washing machine Training loss: 57.24590911476421 ; Val Loss: 54.069542
+Epoch 57 washing machine Training loss: 57.29653631577611 ; Val Loss: 54.300476
+Epoch 58 washing machine Training loss: 57.27496218687002 ; Val Loss: 54.31419
+Epoch 59 washing machine Training loss: 57.269716462614326 ; Val Loss: 54.22146
+Epoch 60 washing machine Training loss: 57.27237964439259 ; Val Loss: 54.357414
+Epoch 61 washing machine Training loss: 57.27999918843981 ; Val Loss: 54.28688
+Epoch 62 washing machine Training loss: 57.27057504972748 ; Val Loss: 54.306355
+Epoch 63 washing machine Training loss: 57.267007863092935 ; Val Loss: 54.28557
+Epoch 64 washing machine Training loss: 57.25784210854346 ; Val Loss: 54.21693
+Epoch 65 washing machine Training loss: 57.29194359755253 ; Val Loss: 54.284397
+Epoch 66 washing machine Training loss: 57.26906465423698 ; Val Loss: 54.302563
+Epoch 67 washing machine Training loss: 57.26979983037092 ; Val Loss: 54.30575
+Epoch 68 washing machine Training loss: 57.272289284147206 ; Val Loss: 54.30088
+Epoch 69 washing machine Training loss: 57.27118248995148 ; Val Loss: 54.30925
+Epoch 70 washing machine Training loss: 57.271872814332674 ; Val Loss: 54.3018
+Epoch 71 washing machine Training loss: 57.26461139652162 ; Val Loss: 54.29151
+Epoch 72 washing machine Training loss: 57.22898418490691 ; Val Loss: 54.527195
+Epoch 73 washing machine Training loss: 57.31823209679256 ; Val Loss: 54.303013
+Epoch 74 washing machine Training loss: 57.26193520890525 ; Val Loss: 54.1217
+Epoch 75 washing machine Training loss: 57.258474162184704 ; Val Loss: 54.33875
+Epoch 76 washing machine Training loss: 57.300633758979735 ; Val Loss: 54.26643
+Epoch 77 washing machine Training loss: 57.26407567468253 ; Val Loss: 54.00428
+Epoch 78 washing machine Training loss: 57.276170114233594 ; Val Loss: 54.30736
+Epoch 79 washing machine Training loss: 57.27064814607209 ; Val Loss: 54.301983
+Epoch 80 washing machine Training loss: 57.25967292145931 ; Val Loss: 54.311756
+Epoch 81 washing machine Training loss: 57.267010987980775 ; Val Loss: 54.301735
+Epoch 82 washing machine Training loss: 57.27628529685894 ; Val Loss: 54.336296
+Epoch 83 washing machine Training loss: 57.27110174318411 ; Val Loss: 54.28703
+Epoch 84 washing machine Training loss: 57.27893089114276 ; Val Loss: 54.311897
+Epoch 85 washing machine Training loss: 57.26404521866833 ; Val Loss: 54.1996
+Epoch 86 washing machine Training loss: 57.28057752314563 ; Val Loss: 54.286102
+Epoch 87 washing machine Training loss: 57.26907232734712 ; Val Loss: 54.29441
+Epoch 88 washing machine Training loss: 57.28199221133392 ; Val Loss: 54.254948
+Epoch 89 washing machine Training loss: 57.26037810965549 ; Val Loss: 54.365295
+Epoch 90 washing machine Training loss: 57.168342415716104 ; Val Loss: 53.33866
+Epoch 91 washing machine Training loss: 57.3739252186171 ; Val Loss: 54.288048
+Epoch 92 washing machine Training loss: 57.26515748291037 ; Val Loss: 54.277275
+Epoch 93 washing machine Training loss: 57.2714547241617 ; Val Loss: 54.31815
+Epoch 94 washing machine Training loss: 57.25103421739414 ; Val Loss: 54.25853
+Epoch 95 washing machine Training loss: 57.29058454836831 ; Val Loss: 54.28646
+Epoch 96 washing machine Training loss: 57.26538431370633 ; Val Loss: 54.26449
+Epoch 97 washing machine Training loss: 57.2806918484269 ; Val Loss: 54.29208
+Epoch 98 washing machine Training loss: 57.2525720144613 ; Val Loss: 54.479164
+Epoch 99 washing machine Training loss: 57.28327256277926 ; Val Loss: 54.22138
+Epoch 100 washing machine Training loss: 57.275772080899074 ; Val Loss: 54.33932
+Training time:  2433.9357719421387 seconds
+Finished Training washing machine Model
+--------------------------------------------------
+
+
+
+
+--------------------------------------------------
+Started Training fridge Model
+Number of training samples: 56186
+Number of validation samples: 37457
+Epoch 0 Loss: 64.65424
+Best validation loss: 71.14842
+Best validation loss: 70.384224
+Epoch 1 fridge Training loss: 70.97665443666781 ; Val Loss: 71.30952
+Epoch 2 fridge Training loss: 71.07005269870079 ; Val Loss: 71.157745
+Epoch 3 fridge Training loss: 71.07237197147174 ; Val Loss: 71.04424
+Epoch 4 fridge Training loss: 71.0730587834166 ; Val Loss: 70.94646
+Epoch 5 fridge Training loss: 71.0737484100062 ; Val Loss: 70.86965
+Epoch 6 fridge Training loss: 71.0739191044114 ; Val Loss: 70.80883
+Epoch 7 fridge Training loss: 71.0738676626399 ; Val Loss: 70.75875
+Epoch 8 fridge Training loss: 71.07337796964714 ; Val Loss: 70.71881
+Epoch 9 fridge Training loss: 71.07251710779906 ; Val Loss: 70.6889
+Epoch 10 fridge Training loss: 71.07207553419326 ; Val Loss: 70.666534
+Epoch 11 fridge Training loss: 71.07192907332724 ; Val Loss: 70.64971
+Epoch 12 fridge Training loss: 71.07178946694896 ; Val Loss: 70.63655
+Epoch 13 fridge Training loss: 71.07128938184638 ; Val Loss: 70.62607
+Epoch 14 fridge Training loss: 71.07013202201179 ; Val Loss: 70.618835
+Epoch 15 fridge Training loss: 71.06887773353941 ; Val Loss: 70.61433
+Epoch 16 fridge Training loss: 71.06810958939985 ; Val Loss: 70.612206
+Epoch 17 fridge Training loss: 71.06796685931782 ; Val Loss: 70.610504
+Epoch 18 fridge Training loss: 71.067781594987 ; Val Loss: 70.60874
+Epoch 19 fridge Training loss: 71.06732340945842 ; Val Loss: 70.606995
+Epoch 20 fridge Training loss: 71.06665967208137 ; Val Loss: 70.606064
+Epoch 21 fridge Training loss: 71.06640473701529 ; Val Loss: 70.60592
+Epoch 22 fridge Training loss: 71.06632919415847 ; Val Loss: 70.605965
+Epoch 23 fridge Training loss: 71.06616112675502 ; Val Loss: 70.60613
+Epoch 24 fridge Training loss: 71.06576726413674 ; Val Loss: 70.606316
+Epoch 25 fridge Training loss: 71.0648790395268 ; Val Loss: 70.60608
+Epoch 26 fridge Training loss: 71.0633240145441 ; Val Loss: 70.6053
+Epoch 27 fridge Training loss: 71.06208464920766 ; Val Loss: 70.60493
+Epoch 28 fridge Training loss: 71.06184235796718 ; Val Loss: 70.60492
+Epoch 29 fridge Training loss: 71.06183968129524 ; Val Loss: 70.60492
+Epoch 30 fridge Training loss: 71.0618398137491 ; Val Loss: 70.60492
+Epoch 31 fridge Training loss: 71.06183974200326 ; Val Loss: 70.60492
+Epoch 32 fridge Training loss: 71.06183974752217 ; Val Loss: 70.60492
+Epoch 33 fridge Training loss: 71.06183979167346 ; Val Loss: 70.60492
+Epoch 34 fridge Training loss: 71.06183979719238 ; Val Loss: 70.60492
+Epoch 35 fridge Training loss: 71.06183979719238 ; Val Loss: 70.60492
+Epoch 36 fridge Training loss: 71.06183978615455 ; Val Loss: 70.60492
+Epoch 37 fridge Training loss: 71.06183977511672 ; Val Loss: 70.60492
+Epoch 38 fridge Training loss: 71.06183977511672 ; Val Loss: 70.60492
+Epoch 39 fridge Training loss: 71.06183977511672 ; Val Loss: 70.60492
+Epoch 40 fridge Training loss: 71.06183977511672 ; Val Loss: 70.60492
+Epoch 41 fridge Training loss: 71.06183977511672 ; Val Loss: 70.60492
+Epoch 42 fridge Training loss: 71.06183977511672 ; Val Loss: 70.60492

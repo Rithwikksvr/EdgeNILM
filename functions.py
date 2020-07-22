@@ -18,8 +18,10 @@ from tensorly.decomposition import parafac
 from torch.nn import Module
 import json
 import random
+import  sys
 fraction_to_train = 1
 
+layers = ['conv1','conv2','conv3','conv4','conv5']
 
 def set_seed():
   seed = 0
@@ -75,7 +77,227 @@ def create_dir_if_not_exists(dir_name_to_save_models):
   if not os.path.exists(dir_name_to_save_models):
     os.makedirs(dir_name_to_save_models)
 
-def train_and_save_model(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop, all_appliances_mains_lst, all_appliances_meter_lst):
+def predict_mtl(model, app_mains, appliance_index, cuda, batch_size):
+
+
+  x = app_mains
+  x = torch.from_numpy(x).float()
+  
+  if cuda:
+    x = x.to(device='cuda')
+  
+  predictions = []
+
+  for index in range(math.ceil(len(x)/batch_size)):
+
+    x_ = x[index*batch_size: (index+1)*batch_size]
+
+    y_pred = model(x_)
+
+    y_pred = y_pred[appliance_index].cpu().detach().numpy()
+
+    predictions.append(y_pred)
+
+  predictions =  np.concatenate(predictions, axis=0)
+
+  
+  
+  return predictions
+
+def compute_mtl_val_loss(model, val_mains_lst, val_appliance_lst, cuda, batch_size, parameters, appliances):
+  val_pred = []
+  
+  for appliance_index, app_mains in enumerate(val_mains_lst):
+    prediction = predict_mtl(model, app_mains, appliance_index, cuda, batch_size)
+    val_pred.append(prediction)
+
+  
+  print ("-"*10)
+  print ("Validation Loss")
+  total_loss = 0
+  for appliance_index, appliance_name in enumerate(appliances):
+    appliance_loss = mean_absolute_error(val_appliance_lst[appliance_index],val_pred[appliance_index]) * parameters[appliance_name]['app_std']
+    total_loss+=appliance_loss
+    print (appliance_name, appliance_loss)
+  print ("-"*10)
+  print('\n')
+  return appliance_loss
+
+def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop, all_appliances_mains_lst, all_appliances_meter_lst):
+  model = models[0]
+  model.cuda()
+
+  dir_name = "fold_%s_models"%(fold_number)
+  dir_name = os.path.join(dir_name, "sequence_length_%s"%(sequence_length))
+  dir_name = os.path.join(dir_name, model_name)
+  
+  dir_name_to_save_models = dir_name
+  filename_to_save_parameters = os.path.join(dir_name_to_save_models,"parameters.json")
+  filename_to_save_weights = os.path.join(dir_name_to_save_models,"weights.pth")
+
+
+  parameters = {}
+
+  train_mains_lst = []
+  train_appliances_lst = []
+
+  val_mains_lst = []
+  val_appliances_lst = []
+
+  set_seed()    
+
+  print ('-'*50)
+  print ("Started Training MTL")
+
+  for appliance_index, appliance_name in enumerate(appliances):
+    set_seed()        
+    train_x = all_appliances_mains_lst[appliance_index]
+    train_y = all_appliances_meter_lst[appliance_index]
+
+    n = len(train_x)
+
+    for i in range(n):
+      df = train_x[i]
+      train_x[i] = df.iloc[:int(len(df)*fraction_to_train)]
+  
+      df = train_y[i]
+      train_y[i] = df.iloc[:int(len(df)*fraction_to_train)]
+
+    
+
+    mains_mean  = float(np.mean(pd.concat(train_x,axis=0).values))
+    mains_std = float(np.std(pd.concat(train_x,axis=0).values))
+
+    app_mean = float(np.mean(pd.concat(train_y,axis=0).values))
+    app_std = float(np.std(pd.concat(train_y,axis=0).values))
+
+    parameters[appliance_name] = {}
+    parameters[appliance_name]['mains_mean'] = mains_mean
+    parameters[appliance_name]['mains_std'] = mains_std
+    parameters[appliance_name]['app_mean'] = app_mean
+    parameters[appliance_name]['app_std'] = app_std
+
+    train_x = mains_preprocessing(train_x, sequence_length)
+    train_y = app_preprocessing(train_y, sequence_length)
+
+    train_x = (train_x - mains_mean)/mains_std
+    train_y = (train_y - app_mean)/app_std
+
+    indices = np.arange(len(train_x))
+    np.random.shuffle(indices)
+    train_x = train_x[indices]
+    train_y = train_y[indices]
+
+    val_index = int(val_prop * len(train_x))
+
+    val_x = train_x[-val_index:]
+    val_y = train_y[-val_index:]
+
+    train_x = train_x[:-val_index]
+    train_y = train_y[:-val_index]
+
+    train_mains_lst.append(train_x)
+    train_appliances_lst.append(train_y)
+
+    val_mains_lst.append(val_x)
+    val_appliances_lst.append(val_y)
+  
+  number_of_batches_per_appliance = [len(array)//batch_size for array in train_mains_lst]
+  num_batches = min(number_of_batches_per_appliance)
+
+  num_of_minibatches_to_save_model = num_batches//4
+
+
+  best_val_loss = np.inf
+
+  criterion = nn.MSELoss()
+  mae_criterion = nn.L1Loss()
+  if opt=='sgd':
+    optimizer = optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
+  else:
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+  print ("Number of training samples: %s"%(num_batches*batch_size))
+  print ("Number of validation samples: %s"%(int(num_batches*batch_size*val_prop/(1-val_prop))))
+  
+  
+  
+  compute_mtl_val_loss(model, val_mains_lst, val_appliances_lst, True, batch_size, parameters, appliances)
+
+  for n in range(n_epochs):
+    epoch_loss = []
+    for batch_number in range(0, num_batches):      
+      sys.stdout.flush()                
+      batch_loss = []   
+      loss = 0
+      for appliance_index, appliance_name in enumerate(appliances):#enumerate([appliances[0]]):                
+        inputs = train_mains_lst[appliance_index][batch_number*batch_size:(batch_number+1)*batch_size]
+        labels = train_appliances_lst[appliance_index][batch_number*batch_size:(batch_number+1)*batch_size]
+        
+        inputs = torch.from_numpy(inputs)
+        labels = torch.from_numpy(labels)
+        
+        inputs = inputs.to('cuda')
+        labels = labels.to('cuda')
+        # zero the parameter gradients
+        optimizer.zero_grad()
+
+        # forward + backward + optimize
+        outputs = model(inputs)
+        outputs = outputs[appliance_index]
+        # print (outputs.shape, labels.shape)
+        loss+=criterion(outputs, labels)
+        mae_loss = mae_criterion(outputs, labels)
+        batch_loss.append(round(mae_loss.item(),2))
+      # print (batch_loss)      
+      epoch_loss.append(batch_loss)
+      # print (epoch_loss[-1])
+      loss.backward()
+      optimizer.step()
+    
+      if batch_number%num_of_minibatches_to_save_model==num_of_minibatches_to_save_model-1:              
+        val_loss = compute_mtl_val_loss(model, val_mains_lst, val_appliances_lst, True, batch_size, parameters, appliances)
+        if val_loss<best_val_loss:
+          print ("Val Loss improved!")
+          save_model(model,filename_to_save_weights)
+
+
+    mean_epoch_training_loss = np.mean(epoch_loss,axis=0)
+
+    for appliance_index, appliance_name in enumerate(appliances):
+      mean_epoch_training_loss[appliance_index] = parameters[appliance_name]['app_std'] * mean_epoch_training_loss[appliance_index]
+
+    print ("Training Loss Epoch %s: %s"%(n+1, mean_epoch_training_loss))
+
+    # Epoch Val loss
+
+    val_loss = compute_mtl_val_loss(model, val_mains_lst, val_appliances_lst, True, batch_size, parameters, appliances)
+    if val_loss<best_val_loss:
+      print ("Val Loss improved!")
+      save_model(model,filename_to_save_weights)
+
+
+
+    
+
+
+      #         if val_loss<best_val_loss:
+      #           save_model(model,filename_to_save_weights)
+      #           best_val_loss = val_loss
+      #           print ("Best validation loss: %s"%(best_val_loss))
+
+
+  f = open(filename_to_save_parameters,'w')
+  f.write(json.dumps(parameters))
+  f.close()
+
+
+
+
+
+
+
+def train_and_save_normal_model(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop, all_appliances_mains_lst, all_appliances_meter_lst):
 
   dir_name = "fold_%s_models"%(fold_number)
   dir_name = os.path.join(dir_name, "sequence_length_%s"%(sequence_length))
@@ -131,9 +353,6 @@ def train_and_save_model(models, model_name, appliances, fold_number, n_epochs, 
     train_x = train_x[indices]
     train_y = train_y[indices]
 
-
-
-
     val_index = int(val_prop * len(train_x))
 
     val_x = train_x[-val_index:]
@@ -183,6 +402,7 @@ def train_and_save_model(models, model_name, appliances, fold_number, n_epochs, 
         running_loss = 0.0
         
         training_losses = []
+        
         for i, data in enumerate(trainloader, 0):
             
             inputs, labels = data
@@ -288,7 +508,10 @@ def train_fold(models, model_name, appliances, fold_number, n_epochs, sequence_l
   all_appliances_mains_lst, all_appliances_meter_lst = load_h5_file(train_file_name, appliances)
 
   training_start = time.time()
-  train_and_save_model(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop, all_appliances_mains_lst, all_appliances_meter_lst)
+  if 'mtl' in model_name:
+    train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop, all_appliances_mains_lst, all_appliances_meter_lst)
+  else:
+    train_and_save_normal_model(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop, all_appliances_mains_lst, all_appliances_meter_lst)
   training_end = time.time()
   # print ("Time taken to train on fold: %s seconds"%(training_end - training_start))
 
@@ -521,9 +744,44 @@ def iteratively_remove(model, num_filters_to_remove, number_of_neurons_to_remove
     remove_lowest_filters(model, filter_name, num_filters_to_remove[i])
   remove_lowest_neurons(model, 'fc1', number_of_neurons_to_remove)
 
+def global_pruning(model, percent_to_remove):
+  total_num_filters = 0
+
+  for layer in layers:
+    total_num_filters+=getattr(model, layer).weight.data.shape[0]
+  
+  num_filters_to_remove = int(percent_to_remove * total_num_filters)
+  
+  
+
+
+  filter_norms = []
+  for layer in layers:
+    current_layer_weights = getattr(model, layer).weight.data
+    filters_l1_norm = torch.sum(torch.sum(torch.abs(current_layer_weights),axis=2),axis=1)    
+
+    for filter_norm in filters_l1_norm:
+      filter_norms.append([filter_norm.item(), layer])
+  
+  filter_norms.sort()
+  
+
+  print (filter_norms[num_filters_to_remove])
+
+  for n in range(num_filters_to_remove):
+    current_filter_norm = filter_norms[n][0]
+    current_layer = filter_norms[n][1]
+    remove_lowest_filters(model, current_layer, 1)
+
+  for layer in layers:
+    current_layer_weights = getattr(model, layer).weight.data
+    print (current_layer_weights.shape)
+  
+
+
 def cp_decompose_model(model, rank):
 
-  layers = ['conv1','conv2','conv3','conv4','conv5']
+  
 
   new_layers = []
 
@@ -611,19 +869,3 @@ def sparsity(model):
   print ("Total sparsity is %s "%(100 * sparse_params/total_params))
   
   
-def global_pruning(model, percentage_to_prune):
-    parameters_to_prune = (
-        (model.conv1, 'weight'),
-        (model.conv2, 'weight'),
-        (model.conv3, 'weight'),
-        (model.conv4, 'weight'),
-        (model.conv5, 'weight'),
-        (model.fc1, 'weight'),
-        (model.fc2, 'weight'),
-    )
-
-    prune.global_unstructured(
-        parameters_to_prune,
-        pruning_method=prune.L1Unstructured,
-        amount=percentage_to_prune,
-    )
