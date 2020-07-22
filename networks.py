@@ -112,151 +112,11 @@ class Seq2Point(nn.Module):
     x = self.fc2(x)
     return x
 
-
-
-# class MTLAppliance(nn.Module):
-#   def __init__(self, sequence_length, cuda):
-#     set_seed()
-#     super(MTLAppliance, self).__init__()
-
-#     self.conv5 = torch.nn.Conv1d(out_channels = 50 , kernel_size=5, in_channels = 50)
-#     # torch.nn.init.xavier_uniform_(self.conv5.weight)
-
-#     self.dropout2 = torch.nn.Dropout(hidden_layer_dropout)
-
-#     dummy_model = dummy_network(sequence_length,cuda)
-#     rand_tensor = torch.randn(1, 1, sequence_length)
-    
-#     if cuda:
-#       rand_tensor = rand_tensor.to(device='cuda')
-#     dummy_output = dummy_model(rand_tensor)
-#     num_of_flattened_neurons = dummy_output.shape[-1]
-
-#     self.fc1 = torch.nn.Linear(out_features=1024, in_features=num_of_flattened_neurons)
-#     # torch.nn.init.xavier_uniform_(self.fc1.weight)
-#     self.fc2 = torch.nn.Linear(out_features=1, in_features=1024)
-#     # torch.nn.init.xavier_uniform_(self.fc2.weight)
-
-#     if cuda:
-#       self.cuda()
-  
-#   def forward(self, x):
-#     # print (torch.max(self.fc1.weight.data))
-#     x = self.conv5(x)
-#     x = F.relu(x)
-#     # x = self.dropout2(x)
-#     x = x.reshape(x.size(0), -1)
-#     x = self.fc1(x)
-#     x = F.relu(x)
-#     x = self.fc2(x)
-#     return x
-
-
-
-# def dummy_network2(sequence_length,cuda):
-#     # Model architecture
-#     set_seed()
-    
-#     model = torch.nn.Sequential(
-        
-#     torch.nn.Conv1d(out_channels = 30 , kernel_size=10, in_channels = 1),
-#     torch.nn.ReLU(),
-
-#     # torch.nn.Conv1d(out_channels = 30 , kernel_size=8, in_channels = 30),
-#     # torch.nn.ReLU(),
-
-#     # torch.nn.Conv1d(out_channels = 40 , kernel_size=6, in_channels = 30),
-#     # torch.nn.ReLU(),
-
-#     # torch.nn.Conv1d(out_channels = 50 , kernel_size=5, in_channels = 40),
-#     # torch.nn.ReLU(), 
-#     # torch.nn.Dropout(p=hidden_layer_dropout),
-
-#     torch.nn.Conv1d(out_channels = 50 , kernel_size=5, in_channels = 50),
-#     torch.nn.ReLU(), 
-#     torch.nn.Dropout(p=hidden_layer_dropout),
-
-#     torch.nn.Flatten(),
-#     )
-#     if cuda:
-#       model.cuda()
-#     return model
-
-
-# class MTLSeq2Point(nn.Module):
-#   def __init__(self, sequence_length,  num_app, cuda):
-#     set_seed()
-#     super(MTLSeq2Point, self).__init__()
-
-#     self.num_app = num_app
-
-    # dummy_model = dummy_network(sequence_length,cuda)
-    # rand_tensor = torch.randn(1, 1, sequence_length)
-    
-    # if cuda:
-    #   rand_tensor = rand_tensor.to(device='cuda')
-    # dummy_output = dummy_model(rand_tensor)
-    # num_of_flattened_neurons = dummy_output.shape[-1]
-
-#     ## Now define the actual network
-
-#     self.conv1 = torch.nn.Conv1d(out_channels = 30 , kernel_size=10, in_channels = 1)
-#     # self.conv2 = torch.nn.Conv1d(out_channels = 30 , kernel_size=8, in_channels = 30)
-#     # self.conv3 = torch.nn.Conv1d(out_channels = 40 , kernel_size=6, in_channels = 30)
-#     # self.conv4 = torch.nn.Conv1d(out_channels = 50 , kernel_size=5, in_channels = 40)
-  
-    
-#     self.conv5 = [torch.nn.Conv1d(out_channels = 50 , kernel_size=5, in_channels = 30).to(device='cuda') for i in range(num_app)]
-#     self.fc1 = [torch.nn.Linear(out_features=1024, in_features=num_of_flattened_neurons).to(device='cuda') for i in range(num_app)]
-#     self.fc2 = [torch.nn.Linear(out_features=1, in_features=1024).to(device='cuda') for i in range(num_app)]
-#     self.dropout1 = [torch.nn.Dropout(hidden_layer_dropout).to(device='cuda') for i in range(num_app)]
-#     self.dropout2 = [torch.nn.Dropout(hidden_layer_dropout).to(device='cuda') for i in range(num_app)]
-
-#     if cuda:
-#       self.cuda()
-  
-#   def forward(self, X):
-#     # print (torch.mean(self.conv1.weight.data))
-#     x = self.conv1(X)
-#     x = F.relu(x)
-
-#     # x = self.conv2(x)
-#     # x = F.relu(x)
-
-#     # x = self.conv3(x)
-#     # x = F.relu(x)
-
-#     # x = self.conv4(x)
-#     # x = F.relu(x)
-
-#     outputs = []
-
-#     for app_index in range(self.num_app):
-
-#       y = self.dropout1[app_index](x)
-
-#       y =  self.conv5[app_index](y)
-#       y = F.relu(y)
-#       y = self.dropout2[app_index](y)
-
-#       y = y.reshape(y.size(0), -1)
-      
-#       y = self.fc1[app_index](y)
-#       y = F.relu(y)
-
-#       y = self.fc2[app_index](y)
-      
-#       outputs.append(y)
-
-#     return outputs
+# MTL with common convolution layers
 
 class mtl_single(nn.Module):
   def __init__(self, sequence_length, cuda):
     super(mtl_single, self).__init__()
-
-    self.conv5 = torch.nn.Conv1d(out_channels = 50 , kernel_size=5, in_channels = 50)
-    # torch.nn.init.xavier_uniform_(self.conv5.weight)
-
 
     dummy_model = dummy_network(sequence_length,cuda)
     rand_tensor = torch.randn(1, 1, sequence_length)
@@ -265,15 +125,12 @@ class mtl_single(nn.Module):
       rand_tensor = rand_tensor.to(device='cuda')
     dummy_output = dummy_model(rand_tensor)
     num_of_flattened_neurons = dummy_output.shape[-1]
-
-
-
+    self.conv5 = torch.nn.Conv1d(out_channels = 50 , kernel_size=5, in_channels = 50)
     self.drop1 = torch.nn.Dropout(0.2)
-    self.drop2 = torch.nn.Dropout(0.2)
     self.fc1 = torch.nn.Linear(out_features=1024, in_features=num_of_flattened_neurons)
-    # torch.nn.init.xavier_uniform_(self.fc1.weight)
+    
     self.fc2 = torch.nn.Linear(out_features=1, in_features=1024)
-    # torch.nn.init.xavier_uniform_(self.fc2.weight)
+    
 
     if cuda:
       self.cuda()
@@ -285,7 +142,6 @@ class mtl_single(nn.Module):
     x = x.reshape(x.size(0), -1)
     x = self.fc1(x)
     x = F.relu(x)
-    x = self.drop2(x)
     x = self.fc2(x)
     return x
 
@@ -299,13 +155,7 @@ class MTLSeq2Point(nn.Module):
     self.conv2 = torch.nn.Conv1d(out_channels = 30 , kernel_size=8, in_channels = 30)
     self.conv3 = torch.nn.Conv1d(out_channels = 40 , kernel_size=6, in_channels = 30)
     self.conv4 = torch.nn.Conv1d(out_channels = 50 , kernel_size=5, in_channels = 40)
-
     self.drop = torch.nn.Dropout(0.2)
-    # torch.nn.init.xavier_uniform_(self.conv1.weight)
-    # torch.nn.init.xavier_uniform_(self.conv2.weight)
-    # torch.nn.init.xavier_uniform_(self.conv3.weight)
-    # torch.nn.init.xavier_uniform_(self.conv4.weight)
-
     self.app_layers = nn.ModuleList([mtl_single(sequence_length, cuda) for j in range(num_app)])
 
     self.num_app = num_app
@@ -333,8 +183,7 @@ class MTLSeq2Point(nn.Module):
     return outs
 
 
-
-
+# Fully shared model
 
 class FinalDense(nn.Module):
   def __init__(self, sequence_length, cuda):
