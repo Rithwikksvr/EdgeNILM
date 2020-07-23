@@ -184,7 +184,7 @@ def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epoc
     train_y = (train_y - app_mean)/app_std
 
     indices = np.arange(len(train_x))
-    np.random.shuffle(indices)
+    # np.random.shuffle(indices)
     train_x = train_x[indices]
     train_y = train_y[indices]
 
@@ -226,11 +226,28 @@ def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epoc
 
   for n in range(n_epochs):
     epoch_loss = []
+    for appliance_index, appliance_name in enumerate(appliances):
+      
+      arr1 = train_mains_lst[appliance_index]
+      arr2 = train_appliances_lst[appliance_index]
+
+      indices = np.arange(len(arr1))
+      np.random.seed(n)
+      np.random.shuffle(indices)
+
+
+      arr1 = arr1[indices]
+      arr2 = arr2[indices]
+
+      
+      train_mains_lst[appliance_index] = arr1
+      train_appliances_lst[appliance_index] = arr2
+
     for batch_number in range(0, num_batches):      
       sys.stdout.flush()                
       batch_loss = []   
       loss = 0
-      for appliance_index, appliance_name in enumerate(appliances):#enumerate([appliances[0]]):                
+      for appliance_index, appliance_name in enumerate(appliances):
         inputs = train_mains_lst[appliance_index][batch_number*batch_size:(batch_number+1)*batch_size]
         labels = train_appliances_lst[appliance_index][batch_number*batch_size:(batch_number+1)*batch_size]
         
@@ -349,7 +366,7 @@ def train_and_save_normal_model(models, model_name, appliances, fold_number, n_e
     train_y = (train_y - app_mean)/app_std
 
     indices = np.arange(len(train_x))
-    np.random.shuffle(indices)
+    # np.random.shuffle(indices)
     train_x = train_x[indices]
     train_y = train_y[indices]
 

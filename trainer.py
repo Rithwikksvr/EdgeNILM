@@ -42,7 +42,7 @@ batch_size=64
 fractions_to_remove = [0.3,0.6,0.9]
 ranks = [1,2,4,8]
 folds = [1,2,3]
-sequence_lengths = [ 499, 99]
+sequence_lengths = [99, 499]
 iterative_increment = 0.1
 start = time.time()
 
