@@ -23,6 +23,8 @@ fraction_to_train = 1
 
 layers = ['conv1','conv2','conv3','conv4','conv5']
 
+shuffling = True
+
 def set_seed():
   seed = 0
   random.seed(seed)
@@ -184,7 +186,8 @@ def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epoc
     train_y = (train_y - app_mean)/app_std
 
     indices = np.arange(len(train_x))
-    # np.random.shuffle(indices)
+    if shuffling:
+      np.random.shuffle(indices)
     train_x = train_x[indices]
     train_y = train_y[indices]
 
@@ -366,7 +369,8 @@ def train_and_save_normal_model(models, model_name, appliances, fold_number, n_e
     train_y = (train_y - app_mean)/app_std
 
     indices = np.arange(len(train_x))
-    # np.random.shuffle(indices)
+    if shuffling:
+      np.random.shuffle(indices)
     train_x = train_x[indices]
     train_y = train_y[indices]
 
