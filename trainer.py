@@ -37,7 +37,7 @@ else:
   n_epochs=20
 
 if 'iterative' in method and 'mtl' in method:
-  n_epochs = n_epochs//2
+  n_epochs = 20
 
 val_prop = 0.4
 

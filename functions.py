@@ -110,7 +110,7 @@ def compute_mtl_val_loss(model, val_mains_lst, val_appliance_lst, cuda, batch_si
   val_pred = []
   
   for appliance_index, app_mains in enumerate(val_mains_lst):
-    prediction = predict_mtl(model, app_mains, appliance_index, cuda, batch_size)
+    prediction = predict_mtl(model, app_mains, appliance_index, cuda, batch_size*10)
     val_pred.append(prediction)
 
   
@@ -280,6 +280,7 @@ def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epoc
         if val_loss<best_val_loss:
           print ("Val Loss improved!")
           save_model(model,filename_to_save_weights)
+          best_val_loss = val_loss
 
 
     mean_epoch_training_loss = np.mean(epoch_loss,axis=0)
@@ -295,6 +296,7 @@ def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epoc
     if val_loss<best_val_loss:
       print ("Val Loss improved!")
       save_model(model,filename_to_save_weights)
+      best_val_loss = val_loss
 
 
 
@@ -444,7 +446,7 @@ def train_and_save_normal_model(models, model_name, appliances, fold_number, n_e
 
             if i%num_of_minibatches_to_save_model==num_of_minibatches_to_save_model-1:
                 # print ("Checking if best")
-                val_pred = predict(model,val_x,True, batch_size)
+                val_pred = predict(model,val_x,True, batch_size*10)
                 val_loss = mean_absolute_error(val_pred*app_std, val_y*app_std)
                 
                 if val_loss<best_val_loss:
@@ -513,7 +515,7 @@ def load_h5_file(filename, appliances):
 
 def train_fold(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop=0.2, num_of_minibatches_to_save_model=100, mini_batch_loss_n = 80):
   
-  
+  print ("Training for %s Epochs"%(n_epochs))
 
   dir_name = "fold_%s_models"%(fold_number)
   create_dir_if_not_exists(dir_name)

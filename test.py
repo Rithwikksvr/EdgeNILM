@@ -49,8 +49,7 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
     parameters = json.load(f)
 
     all_appliances_predictions = []
-    total_time = 0
-    model_size = 0
+
     for appliance_index, appliance_name in enumerate(appliances):
         mains_mean = parameters[appliance_name]['mains_mean']
         mains_std = parameters[appliance_name]['mains_std']
@@ -63,7 +62,7 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
                 model_path = os.path.join(dir_name, "%s.pth"%(appliance_name))
         else:
                 model_path = os.path.join(dir_name, "weights.pth")
-        model_size+= int(os.stat(model_path).st_size)/(1024*1024)
+        
         if not cuda:
             model = torch.load(model_path,map_location=torch.device('cpu'))    
         else:
@@ -79,15 +78,13 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
                         
             processed_mains = mains_preprocessing([home_mains], sequence_length)
             processed_mains = (processed_mains - mains_mean)/mains_std
-            a =time.time()
+ 
             
             if 'mtl' in model_name:
                 prediction = predict_mtl(model, processed_mains, appliance_index, cuda, batch_size)
             else:
                 prediction = predict(model, processed_mains, cuda, batch_size)
             
-            b=time.time()
-            total_time+=b-a
             prediction = prediction * app_std + app_mean
             prediction = prediction.flatten()
             prediction = np.where(prediction>0, prediction,0)
@@ -108,7 +105,7 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
     results.append(sequence_length)
     results.append(fold_number)
     results.append(batch_size)
-    results.append(model_size)
+    
     total_error = 0
     for app_index, app_name in enumerate(appliances):
         truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
@@ -124,9 +121,8 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
             plt.savefig("images/%s_%s_%s_fold_%s.png"%(model_name, app_name,sequence_length,fold_number))
         print ("%s Error: %s"%(app_name, error))
     print ("Total Error: %s"%(total_error))
-    print ("Time taken: ", total_time)
+    
     results.append(total_error)
-    results.append(total_time)
     results_arr.append(results)
 
     return all_appliances_truth, all_appliances_predictions
@@ -145,11 +141,10 @@ cuda=True
 plot=False
 """Unpruned Model"""
 
-method=sys.argv[1]
 
 create_dir_if_not_exists('results')
 
-for method in ['fully_shared_mtl_pruning','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning', 'fully_shared_mtl']:
+for method in ['unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
 
     results_arr = []
     for fold_number in fold_numbers:
@@ -227,11 +222,11 @@ for method in ['fully_shared_mtl_pruning','unpruned_model','tensor_decomposition
                     print ("\n\n\n")
 
             
-    columns  = ['Model Name',"Sequence Length","Fold Number","Batch Size","Model size"]
+    columns  = ['Model Name',"Sequence Length","Fold Number","Batch Size"]
     for app_name in appliances:
         columns.append(app_name+" Error")
     columns.append("Total Error")
-    columns.append("Total Time taken")
+    
 
     results_arr= np.array(results_arr)
     df = pd.DataFrame(data=results_arr, columns=columns, index = range(len(results_arr)))
