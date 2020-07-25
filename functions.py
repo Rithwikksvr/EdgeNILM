@@ -250,6 +250,8 @@ def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epoc
       sys.stdout.flush()                
       batch_loss = []   
       loss = 0
+      # zero the parameter gradients
+      optimizer.zero_grad()
       for appliance_index, appliance_name in enumerate(appliances):
         inputs = train_mains_lst[appliance_index][batch_number*batch_size:(batch_number+1)*batch_size]
         labels = train_appliances_lst[appliance_index][batch_number*batch_size:(batch_number+1)*batch_size]
@@ -259,8 +261,6 @@ def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epoc
         
         inputs = inputs.to('cuda')
         labels = labels.to('cuda')
-        # zero the parameter gradients
-        optimizer.zero_grad()
 
         # forward + backward + optimize
         outputs = model(inputs)
