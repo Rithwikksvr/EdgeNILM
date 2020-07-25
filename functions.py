@@ -545,7 +545,7 @@ def test_fold(model_name, appliances, fold_number, n_epochs, sequence_length):
   models_dir = dir_name
 
   test_file_name = 'test_%s.h5'%(fold_number)
-  all_appliances_mains_lst, all_appliances_truth = load_h5_file(train_file_name, appliances)
+  all_appliances_mains_lst, all_appliances_truth = load_h5_file(test_file_name, appliances)
 
   parameters_path = os.path.join(dir_name, 'parameters.json')
   f = open(parameters_path)
@@ -665,15 +665,21 @@ def remove_lowest_neurons(model, layer_name, num_neurons_to_remove):
 
   original_shape = layer.weight.shape
 
-
-
   current_layer_weights = layer.weight
   current_layer_biases = layer.bias
 
+  if hasattr(model, 'app_layers'):
 
-  next_layer = getattr(model, layers[current_layer_index+1])
-  next_layer_weights = next_layer.weight
-  next_layer_biases = next_layer.bias
+    next_layers = getattr(model, 'app_layers')
+    next_layer_weights = [next_model.fc2.weight for next_model in next_layers]
+    next_layer_biases = [next_model.fc2.bias for next_model in next_layers]
+    num_appliances = len(model.app_layers)
+
+  else:
+
+    next_layer = getattr(model, layers[current_layer_index+1])
+    next_layer_weights = next_layer.weight
+    next_layer_biases = next_layer.bias
 
 
   
@@ -683,8 +689,21 @@ def remove_lowest_neurons(model, layer_name, num_neurons_to_remove):
     #Removing the neuron in the current layer
     new_neuron_weights = torch.cat([current_layer_weights[0:min_neuron_index], current_layer_weights[min_neuron_index+1:]])
     new_neuron_biases = torch.cat([current_layer_biases[0:min_neuron_index], current_layer_biases[min_neuron_index+1:]])
-    new_next_layer_weights = torch.cat([next_layer_weights[:,0:min_neuron_index], next_layer_weights[:,min_neuron_index+1:]],axis=1)
 
+    if hasattr(model, 'app_layers'):
+      new_next_layer_weights = []
+
+      for appliance_index in range(num_appliances):
+        appliance_weights = next_layer_weights[appliance_index]
+        new_appliance_weights = torch.cat([appliance_weights[:,0:min_neuron_index], appliance_weights[:,min_neuron_index+1:]],axis=1)
+        
+        new_next_layer_weights.append(new_appliance_weights)
+      
+
+    else:
+      new_next_layer_weights = torch.cat([next_layer_weights[:,0:min_neuron_index], next_layer_weights[:,min_neuron_index+1:]],axis=1)
+    
+    
     current_layer_weights = new_neuron_weights
     current_layer_biases = new_neuron_biases
     next_layer_weights = new_next_layer_weights
@@ -692,8 +711,18 @@ def remove_lowest_neurons(model, layer_name, num_neurons_to_remove):
 
   if layer_name =='fc1':
     with torch.no_grad():
-      set_new_dense_weights(layer, current_layer_weights, current_layer_biases)
-      set_new_dense_weights(next_layer, new_next_layer_weights, next_layer_biases)
+      if hasattr(model, 'app_layers'):
+        for appliance_index in range(num_appliances):
+          next_layer = model.app_layers[appliance_index].fc2
+          set_new_dense_weights(layer, current_layer_weights, current_layer_biases)
+          set_new_dense_weights(next_layer, new_next_layer_weights[appliance_index], next_layer_biases[appliance_index])
+
+
+      else:
+        set_new_dense_weights(layer, current_layer_weights, current_layer_biases)
+        set_new_dense_weights(next_layer, new_next_layer_weights, next_layer_biases)
+
+
 
 
 def remove_lowest_filters(model, layer_name, num_filters_to_remove):

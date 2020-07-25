@@ -36,6 +36,9 @@ if 'mtl' in method:
 else:
   n_epochs=20
 
+if 'iterative' in method and 'mtl' in method:
+  n_epochs = n_epochs//2
+
 val_prop = 0.4
 
 batch_size=64
@@ -96,8 +99,8 @@ for fold_number in folds:
         for pruned_model in pruned_models:
           iteratively_remove(pruned_model, num_convolution_filters_to_remove, num_dense_neurons_to_remove)
           pruned_model.cuda()
-
         train_fold(pruned_models, 'iterative_model_%s_percent'%(increment*10), appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
+
 
     elif method=='tensor_decomposition':
       for rank in ranks:
@@ -123,6 +126,49 @@ for fold_number in folds:
       
       mtl_model = [MTLSeq2Point(sequence_length, len(appliances), cuda)]
       train_fold(mtl_model, method, appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
+
+    elif method=='fully_shared_mtl_pruning':
+      for fraction_to_remove in fractions_to_remove:        
+        print ( "Training fold %s with %s method using sequence length %s and removing %s percent of weights"%(fold_number, 'Fully Shared MTL Pruning', sequence_length, int(fraction_to_remove*100)))
+        # This one takes a lot of time!!
+        dir_name = "fold_%s_models"%(fold_number)
+        dir_name = os.path.join(dir_name, "sequence_length_%s"%(sequence_length))
+        dir_name = os.path.join(dir_name, 'fully_shared_mtl')
+        pruned_models = [torch.load(os.path.join(dir_name,'weights.pth'))]
+        for pruned_model in pruned_models:
+          remove_filters_and_neurons(pruned_model, fraction_to_remove)
+          pruned_model.cuda()
+        percent_to_remove = int(fraction_to_remove*100)        
+        train_fold(pruned_models, 'fully_shared_mtl_pruning_%s_percent'%(percent_to_remove), appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
+
+
+    elif method=='fully_shared_mtl_iterative_pruning':
+      layers = ['conv1','conv2','conv3','conv4','conv5']
+      for increment in range(1,int(max(fractions_to_remove)/iterative_increment) + 1):
+        print ( "Training fold %s with %s method using sequence length %s"%(fold_number, 'mtl_iterative_%s_percent'%(increment*10) , sequence_length))    
+
+        dir_name = "fold_%s_models"%(fold_number)
+        dir_name = os.path.join(dir_name, "sequence_length_%s"%(sequence_length))
+        if increment==1:
+          dir_name = os.path.join(dir_name, 'fully_shared_mtl')
+        else:
+          dir_name = os.path.join(dir_name, 'fully_shared_mtl_iterative_model_%s_percent'%((increment-1)*10))
+
+        pruned_models = [torch.load(os.path.join(dir_name,'weights.pth'))]
+
+        if increment==1:
+          model = pruned_models[0]
+          num_convolution_filters = [getattr( model, layer).weight.shape[0] for layer in layers]
+          num_dense_neurons = model.fc1.weight.shape[0]
+          num_convolution_filters_to_remove = [int(n_filter * iterative_increment) for n_filter in num_convolution_filters]
+          num_dense_neurons_to_remove = int(num_dense_neurons * iterative_increment)
+
+        for pruned_model in pruned_models:
+          iteratively_remove(pruned_model, num_convolution_filters_to_remove, num_dense_neurons_to_remove)
+          pruned_model.cuda()
+        train_fold(pruned_models, 'fully_shared_mtl_iterative_model_%s_percent'%(increment*10), appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
+
+
 
 
     # elif method=='global_pruning':

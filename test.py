@@ -146,78 +146,96 @@ plot=False
 """Unpruned Model"""
 
 method=sys.argv[1]
-results_arr = []
-for fold_number in fold_numbers:
 
-    print ("Batch size:", batch_size)
-    for sequence_length in sequence_lengths:
+create_dir_if_not_exists('results')
 
-        if method=='unpruned_model':
-            print ("-"*50)
-            print ("Results unpruned model; sequence length: %s "%(sequence_length))
-            truth, all_predictions = test_fold('unpruned_model', appliances, fold_number, sequence_length, batch_size, results_arr)
+for method in ['fully_shared_mtl_pruning','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning', 'fully_shared_mtl']:
+
+    results_arr = []
+    for fold_number in fold_numbers:
+
+        print ("Batch size:", batch_size)
+        for sequence_length in sequence_lengths:
+
+            if method=='unpruned_model':
+                print ("-"*50)
+                print ("Results unpruned model; sequence length: %s "%(sequence_length))
+                truth, all_predictions = test_fold('unpruned_model', appliances, fold_number, sequence_length, batch_size, results_arr)
+                
+                print ("-"*50)
+                print ("\n\n\n")
             
-            print ("-"*50)
-            print ("\n\n\n")
-        
-        elif method=='normal_pruning':
-            for pruned_percentage in [30, 60, 90]:
-                
-                print ("-"*50)
-                print ("Results for %s percent Pruning; sequence length: %s "%(pruned_percentage, sequence_length))
-                model_name = "pruned_model_%s_percent" %(pruned_percentage)
-                truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)
-                
-                print ("-"*50)
-                print ("\n\n\n")
+            elif method=='normal_pruning':
+                for pruned_percentage in [30, 60, 90]:
+                    
+                    print ("-"*50)
+                    print ("Results for %s percent Pruning; sequence length: %s "%(pruned_percentage, sequence_length))
+                    model_name = "pruned_model_%s_percent" %(pruned_percentage)
+                    truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)
+                    
+                    print ("-"*50)
+                    print ("\n\n\n")
 
 
-        elif method=='iterative_pruning':        
+            elif method=='iterative_pruning':        
 
-            for iterative_pruned_percentage in [30, 60, 90]:
-                
-                print ("-"*50)
-                print ("Results for %s percent Iterative Pruning; sequence length: %s "%(iterative_pruned_percentage, sequence_length))
-                model_name = "iterative_model_%s_percent" %(iterative_pruned_percentage)
-                truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)
-                
-                print ("-"*50)
-                print ("\n\n\n")
+                for iterative_pruned_percentage in [30, 60, 90]:
+                    
+                    print ("-"*50)
+                    print ("Results for %s percent Iterative Pruning; sequence length: %s "%(iterative_pruned_percentage, sequence_length))
+                    model_name = "iterative_model_%s_percent" %(iterative_pruned_percentage)
+                    truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)
+                    
+                    print ("-"*50)
+                    print ("\n\n\n")
 
-        elif method=='tensor_decomposition':
+            elif method=='tensor_decomposition':
 
-            for rank in [1,2, 4,8 ]:
+                for rank in [1,2, 4,8 ]:
+                    print ("-"*50)
+                    print ("Results for rank %s tensor decomposition; sequence length: %s "%(rank, sequence_length))
+                    model_name = 'tensor_decomposition_rank_%s'%(rank)
+                    truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
+                    print ("-"*50)
+                    print ("\n\n\n")
+            elif method == 'fully_shared_mtl':
                 print ("-"*50)
-                print ("Results for rank %s tensor decomposition; sequence length: %s "%(rank, sequence_length))
-                model_name = 'tensor_decomposition_rank_%s'%(rank)
+                print ("Results for Fully shared MTL Model; sequence length: %s "%(sequence_length))
+                model_name = method
                 truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
                 print ("-"*50)
                 print ("\n\n\n")
-        elif method == 'fully_shared_mtl':
-            print ("-"*50)
-            print ("Results for Fully shared MTL Model; sequence length: %s "%(sequence_length))
-            model_name = method
-            truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
-            print ("-"*50)
-            print ("\n\n\n")
-      
-        elif method == 'normal_mtl':
-            print ("-"*50)
-            print ("Results for Normal  MTL Model; sequence length: %s "%(sequence_length))
-            model_name = method
-            truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
-            print ("-"*50)
-            print ("\n\n\n")
         
-columns  = ['Model Name',"Sequence Length","Fold Number","Batch Size","Model size"]
-for app_name in appliances:
-    columns.append(app_name+" Error")
-columns.append("Total Error")
-columns.append("Total Time taken")
+            elif method == 'normal_mtl':
+                print ("-"*50)
+                print ("Results for Normal  MTL Model; sequence length: %s "%(sequence_length))
+                model_name = method
+                truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
+                print ("-"*50)
+                print ("\n\n\n")
+            
+            elif method=='fully_shared_mtl_pruning':
 
-results_arr= np.array(results_arr)
-df = pd.DataFrame(data=results_arr, columns=columns, index = range(len(results_arr)))
-df.to_csv('%s.csv'%(method),index=False)
+                for pruned_percentage in [30, 60, 90]:
+                    
+                    print ("-"*50)
+                    print ("Results for Fully shared MTL %s percent Pruning; sequence length: %s "%(pruned_percentage, sequence_length))
+                    model_name = "fully_shared_mtl_pruning_%s_percent" %(pruned_percentage)
+                    truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
+                    
+                    print ("-"*50)
+                    print ("\n\n\n")
+
+            
+    columns  = ['Model Name',"Sequence Length","Fold Number","Batch Size","Model size"]
+    for app_name in appliances:
+        columns.append(app_name+" Error")
+    columns.append("Total Error")
+    columns.append("Total Time taken")
+
+    results_arr= np.array(results_arr)
+    df = pd.DataFrame(data=results_arr, columns=columns, index = range(len(results_arr)))
+    df.to_csv(os.path.join('results','%s.csv'%(method)),index=False)
 
 
 
