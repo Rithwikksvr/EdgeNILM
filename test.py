@@ -144,7 +144,7 @@ plot=False
 
 create_dir_if_not_exists('results')
 
-for method in ['unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
+for method in ['fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
 
     results_arr = []
     for fold_number in fold_numbers:
