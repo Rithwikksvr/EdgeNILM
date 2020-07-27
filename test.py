@@ -139,12 +139,12 @@ sequence_lengths = [499, 99]
 fraction_to_test = 1
 cuda=True
 plot=False
-"""Unpruned Model"""
 
+"""Unpruned Model"""
 
 create_dir_if_not_exists('results')
 
-for method in ['fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
+for method in ['fully_shared_mtl_iterative_pruning','fully_shared_mtl_pruning','fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
 
     results_arr = []
     for fold_number in fold_numbers:
@@ -201,13 +201,13 @@ for method in ['fully_shared_mtl','unpruned_model','tensor_decomposition','norma
                 print ("-"*50)
                 print ("\n\n\n")
         
-            elif method == 'normal_mtl':
-                print ("-"*50)
-                print ("Results for Normal  MTL Model; sequence length: %s "%(sequence_length))
-                model_name = method
-                truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
-                print ("-"*50)
-                print ("\n\n\n")
+            # elif method == 'normal_mtl':
+            #     print ("-"*50)
+            #     print ("Results for Normal  MTL Model; sequence length: %s "%(sequence_length))
+            #     model_name = method
+            #     truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
+            #     print ("-"*50)
+            #     print ("\n\n\n")
             
             elif method=='fully_shared_mtl_pruning':
 
@@ -216,6 +216,18 @@ for method in ['fully_shared_mtl','unpruned_model','tensor_decomposition','norma
                     print ("-"*50)
                     print ("Results for Fully shared MTL %s percent Pruning; sequence length: %s "%(pruned_percentage, sequence_length))
                     model_name = "fully_shared_mtl_pruning_%s_percent" %(pruned_percentage)
+                    truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
+                    
+                    print ("-"*50)
+                    print ("\n\n\n")
+
+            elif method=='fully_shared_mtl_iterative_pruning':
+
+                for pruned_percentage in [30, 60, 90]:
+                    
+                    print ("-"*50)
+                    print ("Results for Fully shared MTL %s percent Iterative Pruning; sequence length: %s "%(pruned_percentage, sequence_length))
+                    model_name = "fully_shared_mtl_iterative_model_%s_percent" %(pruned_percentage)
                     truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
                     
                     print ("-"*50)
