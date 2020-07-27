@@ -43,58 +43,85 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
             df = all_appliances_truth[i][j]
             all_appliances_truth[i][j] = df.iloc[:int(fraction_to_test * len(df))]
 
+    if method!='zero':
+        parameters_path = os.path.join(dir_name, 'parameters.json')
+        f = open(parameters_path)
+        parameters = json.load(f)
 
-    parameters_path = os.path.join(dir_name, 'parameters.json')
-    f = open(parameters_path)
-    parameters = json.load(f)
+        all_appliances_predictions = []
 
-    all_appliances_predictions = []
+        for appliance_index, appliance_name in enumerate(appliances):
+            mains_mean = parameters[appliance_name]['mains_mean']
+            mains_std = parameters[appliance_name]['mains_std']
+            app_mean = parameters[appliance_name]['app_mean']
+            app_std = parameters[appliance_name]['app_std']
+            appliance_mains_dfs = all_appliances_mains_lst[appliance_index]
 
-    for appliance_index, appliance_name in enumerate(appliances):
-        mains_mean = parameters[appliance_name]['mains_mean']
-        mains_std = parameters[appliance_name]['mains_std']
-        app_mean = parameters[appliance_name]['app_mean']
-        app_std = parameters[appliance_name]['app_std']
-        appliance_mains_dfs = all_appliances_mains_lst[appliance_index]
-
-        no_of_homes = len(appliance_mains_dfs)
-        if 'mtl' not in model_name:
-                model_path = os.path.join(dir_name, "%s.pth"%(appliance_name))
-        else:
-                model_path = os.path.join(dir_name, "weights.pth")
-        
-        if not cuda:
-            model = torch.load(model_path,map_location=torch.device('cpu'))    
-        else:
-            model = torch.load(model_path)    
-        model.eval()    
-        
-
-        appliance_prediction = []
-
-        for home_id in range(no_of_homes):
-            home_mains = appliance_mains_dfs[home_id]
-            l = len(home_mains)
-                        
-            processed_mains = mains_preprocessing([home_mains], sequence_length)
-            processed_mains = (processed_mains - mains_mean)/mains_std
- 
-            
-            if 'mtl' in model_name:
-                prediction = predict_mtl(model, processed_mains, appliance_index, cuda, batch_size)
+            no_of_homes = len(appliance_mains_dfs)
+            if 'mtl' not in model_name:
+                    model_path = os.path.join(dir_name, "%s.pth"%(appliance_name))
             else:
-                prediction = predict(model, processed_mains, cuda, batch_size)
+                    model_path = os.path.join(dir_name, "weights.pth")
             
-            prediction = prediction * app_std + app_mean
-            prediction = prediction.flatten()
-            prediction = np.where(prediction>0, prediction,0)
-            df = pd.DataFrame({appliance_name: prediction})
-            df.index = home_mains.index
-            appliance_prediction.append(df)
+            if not cuda:
+                model = torch.load(model_path,map_location=torch.device('cpu'))    
+            else:
+                model = torch.load(model_path)    
+            model.eval()    
+            
 
-            # print (home_mains.shape)
-            # print ()
-        all_appliances_predictions.append(appliance_prediction)
+            appliance_prediction = []
+
+            for home_id in range(no_of_homes):
+                home_mains = appliance_mains_dfs[home_id]
+                l = len(home_mains)
+                            
+                processed_mains = mains_preprocessing([home_mains], sequence_length)
+                processed_mains = (processed_mains - mains_mean)/mains_std
+    
+                
+                if 'mtl' in model_name:
+                    prediction = predict_mtl(model, processed_mains, appliance_index, cuda, batch_size)
+                else:
+                    prediction = predict(model, processed_mains, cuda, batch_size)
+                
+                prediction = prediction * app_std + app_mean
+                prediction = prediction.flatten()
+                
+                prediction = np.where(prediction>0, prediction,0)
+                df = pd.DataFrame({appliance_name: prediction})
+                df.index = home_mains.index
+                appliance_prediction.append(df)
+
+                # print (home_mains.shape)
+                # print ()
+            all_appliances_predictions.append(appliance_prediction)
+
+    else:
+
+        all_appliances_predictions = []
+
+        for appliance_index, appliance_name in enumerate(appliances):
+            
+            appliance_mains_dfs = all_appliances_mains_lst[appliance_index]
+
+            no_of_homes = len(appliance_mains_dfs)
+
+            appliance_prediction = []
+
+            for home_id in range(no_of_homes):
+                home_mains = appliance_mains_dfs[home_id]
+                l = len(home_mains)
+                            
+                prediction = np.zeros(l)
+                df = pd.DataFrame({appliance_name: prediction})
+                df.index = home_mains.index
+                appliance_prediction.append(df)
+
+                # print (home_mains.shape)
+                # print ()
+            all_appliances_predictions.append(appliance_prediction)
+
 
 
         
@@ -144,7 +171,7 @@ plot=False
 
 create_dir_if_not_exists('results')
 
-for method in ['fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
+for method in ['zero']:#['fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
 
     results_arr = []
     for fold_number in fold_numbers:
@@ -220,6 +247,16 @@ for method in ['fully_shared_mtl','unpruned_model','tensor_decomposition','norma
                     
                     print ("-"*50)
                     print ("\n\n\n")
+            
+            elif method=='zero':
+
+                print ("-"*50)
+                print ("Results for zero model; sequence length: %s "%( sequence_length))
+                model_name = method
+                truth, all_predictions = test_fold(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
+                
+                print ("-"*50)
+                print ("\n\n\n")
 
             
     columns  = ['Model Name',"Sequence Length","Fold Number","Batch Size"]

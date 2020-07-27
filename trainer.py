@@ -121,12 +121,6 @@ for fold_number in folds:
       mtl_model = [FullySharedMTL(sequence_length, len(appliances), cuda)]
       train_fold(mtl_model, method, appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
 
-    elif method=='normal_mtl':
-      print ( "Training fold %s with %s method using sequence length %s"%(fold_number, 'multi task learning model', sequence_length))          
-      
-      mtl_model = [MTLSeq2Point(sequence_length, len(appliances), cuda)]
-      train_fold(mtl_model, method, appliances, fold_number, n_epochs, sequence_length, batch_size, 'adam', val_prop,num_of_minibatches_to_save_model=40)
-
     elif method=='fully_shared_mtl_pruning':
       for fraction_to_remove in fractions_to_remove:        
         print ( "Training fold %s with %s method using sequence length %s and removing %s percent of weights"%(fold_number, 'Fully Shared MTL Pruning', sequence_length, int(fraction_to_remove*100)))

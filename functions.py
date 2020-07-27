@@ -791,6 +791,18 @@ def remove_filters_and_neurons(model, percent_to_remove):
   number_of_neurons_to_remove = math.ceil(percent_to_remove * original_shape[0])
   remove_lowest_neurons(model, 'fc1', number_of_neurons_to_remove)
 
+def remove_filters_only(model, percent_to_remove):
+    for i in ['conv1','conv2','conv3','conv4','conv5']:
+      original_shape = getattr(model, i).weight.shape
+      num_filters_to_remove = math.ceil(percent_to_remove * original_shape[0])
+      remove_lowest_filters(model, i, num_filters_to_remove)
+
+def remove_neurons_only(model, percent_to_remove):
+    original_shape = model.fc1.weight.shape
+    number_of_neurons_to_remove = math.ceil(percent_to_remove * original_shape[0])
+    remove_lowest_neurons(model, 'fc1', number_of_neurons_to_remove)
+      
+
 def iteratively_remove(model, num_filters_to_remove, number_of_neurons_to_remove):
   for i, filter_name in enumerate(['conv1','conv2','conv3','conv4','conv5']):
     remove_lowest_filters(model, filter_name, num_filters_to_remove[i])

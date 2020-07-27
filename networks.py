@@ -147,10 +147,10 @@ class mtl_single(nn.Module):
     return x
 
 
-class MTLSeq2Point(nn.Module):
+class NotFullySharedMTL(nn.Module):
   def __init__(self, sequence_length, num_app, cuda):
     set_seed()
-    super(MTLSeq2Point, self).__init__()
+    super(NotFullySharedMTL, self).__init__()
 
 
     self.conv1 = torch.nn.Conv1d(out_channels = 30 , kernel_size=10, in_channels = 1)
