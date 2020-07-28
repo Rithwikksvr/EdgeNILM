@@ -19,7 +19,7 @@ torch.backends.cudnn.benchmark = False
 
 from functions import *
 from networks import Seq2Point
-
+from pthflops import count_ops
 
 
 
@@ -43,6 +43,8 @@ def compute_model_stats(model_name, appliances, fold_number, sequence_length, ba
 
     total_time_taken = 0
 
+    flops_tensor = torch.rand(1,1,sequence_length).to('cpu')
+
     if 'mtl' in model_name:
         model_path = os.path.join(dir_name, "weights.pth")
         model = torch.load(model_path,map_location=torch.device('cpu'))    
@@ -52,7 +54,7 @@ def compute_model_stats(model_name, appliances, fold_number, sequence_length, ba
         for i in range(num_samples//batch_size):
             prediction = model(batch_tensor)
         b = time.time()
-
+        
         total_time_taken+=b-a
 
     else:
@@ -68,6 +70,7 @@ def compute_model_stats(model_name, appliances, fold_number, sequence_length, ba
             b = time.time()
             total_time_taken+=b-a
             model_size+= (int(os.stat(model_path).st_size)/(1024*1024))
+            
 
 
     results = []
@@ -88,7 +91,7 @@ cuda=False
 
 results_arr = []
 
-for method in ['fully_shared_mtl_pruning','fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
+for method in ['fully_shared_mtl_iterative_pruning','fully_shared_mtl_pruning','fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
     
         print ("Batch size:", batch_size)
         for sequence_length in sequence_lengths:
@@ -162,6 +165,20 @@ for method in ['fully_shared_mtl_pruning','fully_shared_mtl','unpruned_model','t
                     
                     print ("-"*50)
                     print ("\n\n\n")
+            
+            
+            elif method=='fully_shared_mtl_iterative_pruning':
+
+                for pruned_percentage in [30, 60, 90]:
+                    
+                    print ("-"*50)
+                    print ("Results for Fully shared MTL %s percent Iterative Pruning; sequence length: %s "%(pruned_percentage, sequence_length))
+                    model_name = "fully_shared_mtl_iterative_model_%s_percent" %(pruned_percentage)
+                    compute_model_stats(model_name, appliances, fold_number, sequence_length, batch_size, results_arr)            
+                    
+                    print ("-"*50)
+                    print ("\n\n\n")
+
 
         
 columns  = ['Model Name',"Sequence Length", "Time taken", "Model size"]

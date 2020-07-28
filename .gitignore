@@ -8,3 +8,6 @@ __pycache__
 *70*
 *80*
 *.zip
+images/
+*png
+*jpg

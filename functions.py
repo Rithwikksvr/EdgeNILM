@@ -116,14 +116,17 @@ def compute_mtl_val_loss(model, val_mains_lst, val_appliance_lst, cuda, batch_si
   
   print ("-"*10)
   print ("Validation Loss")
-  total_loss = 0
+  total_loss = 0  
+  scaled_loss = 0
   for appliance_index, appliance_name in enumerate(appliances):
+    scaled_loss+=mean_absolute_error(val_appliance_lst[appliance_index],val_pred[appliance_index])
     appliance_loss = mean_absolute_error(val_appliance_lst[appliance_index],val_pred[appliance_index]) * parameters[appliance_name]['app_std']
     total_loss+=appliance_loss
     print (appliance_name, appliance_loss)
+  print ("Total Loss: %s"%(total_loss))
   print ("-"*10)
   print('\n')
-  return appliance_loss
+  return total_loss
 
 def train_and_save_mtl_model(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop, all_appliances_mains_lst, all_appliances_meter_lst):
   model = models[0]
