@@ -5,7 +5,7 @@ import    math
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 import os
-from sklearn.metrics import    mean_absolute_error
+from sklearn.metrics import    mean_absolute_error, f1_score
 import math
 import torch
 from torch import nn
@@ -130,13 +130,35 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
     results.append(fold_number)
     results.append(batch_size)
     
-    total_error = 0
+    total_error = [0 for q in range(len(metrics))]
+
     for app_index, app_name in enumerate(appliances):
-        truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
-        pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
-        error = mean_absolute_error(truth_, pred_)
-        results.append(error)
-        total_error+=error
+        
+        for metric_index, metric in enumerate(metrics):
+            if metric=='mae':
+                truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
+                pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
+                error = mean_absolute_error(truth_, pred_)
+                
+            elif metric=='f1-score':
+                truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
+                pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
+                truth_ = np.where(truth_>threshold, 1,0)
+                pred_ = np.where(pred_>threshold, 1,0)
+                error = f1_score(truth_, pred_)            
+            else: 
+                total_ground_truth_usage = [np.sum(df.values) for df in all_appliances_truth[app_index]]
+                total_prediction_usage = [np.sum(df.values) for df in all_appliances_predictions[app_index]]
+                total_mains_usage = [np.sum(df.values) for df in all_appliances_mains_lst[app_index]]
+
+                energy_incorrectly_assigned = [ (total_ground_truth_usage[home]/total_mains_usage[home] )- (total_prediction_usage[home]/total_mains_usage[home]) for home in range(len(total_ground_truth_usage)) ]
+                error = 100*np.mean(np.abs(energy_incorrectly_assigned))
+
+            print ("%s %s Error: %s"%(app_name, metric,error))
+
+            results.append(error)
+            total_error[metric_index]+=error
+        
         if plot:
             plt.figure(figsize=(30,4))
             plt.plot(truth_[:1000],'r',label="Truth")
@@ -144,10 +166,9 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
             plt.legend()
             plt.savefig("images/%s_%s_%s_fold_%s.png"%(model_name, app_name,sequence_length,fold_number))
             plt.close()
-        print ("%s Error: %s"%(app_name, error))
-    print ("Total Error: %s"%(total_error))
-    
-    results.append(total_error)
+        
+    results = results + total_error
+
     results_arr.append(results)
 
     return all_appliances_truth, all_appliances_predictions
@@ -165,12 +186,15 @@ fraction_to_test = 1
 cuda=True
 plot=True
 
+metrics = ['mae','f1-score','sae']
+threshold = 15
+
 """Unpruned Model"""
 
 create_dir_if_not_exists('results')
 create_dir_if_not_exists('images')
 
-for method in ['fully_shared_mtl_iterative_pruning','fully_shared_mtl_pruning','fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
+for method in ['zero','fully_shared_mtl_iterative_pruning','fully_shared_mtl_pruning','fully_shared_mtl','unpruned_model','tensor_decomposition','normal_pruning','iterative_pruning']:
 
     results_arr = []
     for fold_number in fold_numbers:
@@ -276,8 +300,11 @@ for method in ['fully_shared_mtl_iterative_pruning','fully_shared_mtl_pruning','
             
     columns  = ['Model Name',"Sequence Length","Fold Number","Batch Size"]
     for app_name in appliances:
-        columns.append(app_name+" Error")
-    columns.append("Total Error")
+        for metric in metrics:
+            columns.append(metric+ app_name+" Error")
+    
+    for metric in metrics:
+        columns.append("Total "+metric)
     
 
     results_arr= np.array(results_arr)

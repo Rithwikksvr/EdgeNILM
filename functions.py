@@ -540,23 +540,6 @@ def train_fold(models, model_name, appliances, fold_number, n_epochs, sequence_l
     train_and_save_normal_model(models, model_name, appliances, fold_number, n_epochs, sequence_length, batch_size, opt, val_prop, all_appliances_mains_lst, all_appliances_meter_lst)
   training_end = time.time()
   # print ("Time taken to train on fold: %s seconds"%(training_end - training_start))
-
-def test_fold(model_name, appliances, fold_number, n_epochs, sequence_length):
-
-  dir_name = "fold_%s_models"%(fold_number)
-  dir_name = os.path.join(dir_name, "sequence_length_%s"%(sequence_length))
-  dir_name = os.path.join(dir_name, model_name)
-
-  models_dir = dir_name
-
-  test_file_name = 'test_%s.h5'%(fold_number)
-  all_appliances_mains_lst, all_appliances_truth = load_h5_file(test_file_name, appliances)
-
-  parameters_path = os.path.join(dir_name, 'parameters.json')
-  f = open(parameters_path)
-  parameters = json.load(f)
-
-
   
 
 
