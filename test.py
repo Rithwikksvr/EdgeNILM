@@ -160,12 +160,21 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
             total_error[metric_index]+=error
         
         if plot:
+            truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
+            pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
+
             plt.figure(figsize=(30,4))
             plt.plot(truth_[:1000],'r',label="Truth")
             plt.plot(pred_[:1000],'b',label="Pred")
             plt.legend()
             plt.savefig("images/%s_%s_%s_fold_%s.png"%(model_name, app_name,sequence_length,fold_number))
             plt.close()
+        if save_predictions:
+            truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
+            pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
+
+            np.save("predictions/%s_fold_%s.png"%( app_name,fold_number),truth_)
+            np.save("predictions/%s_%s_%s_fold_%s.png"%(model_name, app_name,sequence_length,fold_number),pred_)
         
     results = results + total_error
 
@@ -184,7 +193,8 @@ fold_numbers=[1, 2, 3]
 sequence_lengths = [499, 99]
 fraction_to_test = 1
 cuda=True
-plot=True
+plot=False
+save_predictions=True
 
 metrics = ['mae','f1-score','sae']
 threshold = 15

@@ -32,7 +32,7 @@ appliances =  ["washing machine","fridge", "dish washer"]
 method=sys.argv[1]
 
 if 'mtl' in method:
-  n_epochs=20
+  n_epochs=60
 else:
   n_epochs=20
 

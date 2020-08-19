@@ -5,7 +5,7 @@ import    math
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 import os
-from sklearn.metrics import    mean_absolute_error
+from sklearn.metrics import    mean_absolute_error, f1_score
 import math
 import torch
 from torch import nn
@@ -130,23 +130,54 @@ def test_fold(model_name, appliances, fold_number, sequence_length, batch_size, 
     results.append(fold_number)
     results.append(batch_size)
     
-    total_error = 0
+    total_error = [0 for q in range(len(metrics))]
+
     for app_index, app_name in enumerate(appliances):
-        truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
-        pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
-        error = mean_absolute_error(truth_, pred_)
-        results.append(error)
-        total_error+=error
+        
+        for metric_index, metric in enumerate(metrics):
+            if metric=='mae':
+                truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
+                pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
+                error = mean_absolute_error(truth_, pred_)
+                
+            elif metric=='f1-score':
+                truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
+                pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
+                truth_ = np.where(truth_>threshold, 1,0)
+                pred_ = np.where(pred_>threshold, 1,0)
+                error = f1_score(truth_, pred_)            
+            else: 
+                total_ground_truth_usage = [np.sum(df.values) for df in all_appliances_truth[app_index]]
+                total_prediction_usage = [np.sum(df.values) for df in all_appliances_predictions[app_index]]
+                total_mains_usage = [np.sum(df.values) for df in all_appliances_mains_lst[app_index]]
+
+                energy_incorrectly_assigned = [ (total_ground_truth_usage[home]/total_mains_usage[home] )- (total_prediction_usage[home]/total_mains_usage[home]) for home in range(len(total_ground_truth_usage)) ]
+                error = 100*np.mean(np.abs(energy_incorrectly_assigned))
+
+            print ("%s %s Error: %s"%(app_name, metric,error))
+
+            results.append(error)
+            total_error[metric_index]+=error
+        
         if plot:
-            plt.figure(figsize=(300,8))
-            plt.plot(truth_,'r',label="Truth")
-            plt.plot(pred_,'b',label="Pred")
+            truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
+            pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
+
+            plt.figure(figsize=(30,4))
+            plt.plot(truth_[:1000],'r',label="Truth")
+            plt.plot(pred_[:1000],'b',label="Pred")
             plt.legend()
             plt.savefig("images/%s_%s_%s_fold_%s.png"%(model_name, app_name,sequence_length,fold_number))
-        print ("%s Error: %s"%(app_name, error))
-    print ("Total Error: %s"%(total_error))
-    
-    results.append(total_error)
+            plt.close()
+        if save_predictions:
+            truth_ = pd.concat(all_appliances_truth[app_index],axis=0).values
+            pred_ = pd.concat(all_appliances_predictions[app_index],axis=0).values
+
+            np.save("predictions/%s_fold_%s.png"%( app_name,fold_number),truth_)
+            np.save("predictions/%s_%s_%s_fold_%s.png"%(model_name, app_name,sequence_length,fold_number),pred_)
+        
+    results = results + total_error
+
     results_arr.append(results)
 
     return all_appliances_truth, all_appliances_predictions
@@ -163,8 +194,10 @@ sequence_lengths = [99]
 fraction_to_test = 1
 cuda=True
 plot=False
+save_predictions=True
 
-"""Unpruned Model"""
+metrics = ['mae','f1-score','sae']
+threshold = 15
 
 create_dir_if_not_exists('mini-experiments-results')
 
@@ -193,8 +226,11 @@ for method in ['only_convolutions_pruned_model_30_percent','only_neurons_pruned_
             
     columns  = ['Model Name',"Sequence Length","Fold Number","Batch Size"]
     for app_name in appliances:
-        columns.append(app_name+" Error")
-    columns.append("Total Error")
+        for metric in metrics:
+            columns.append(metric+ app_name+" Error")
+    
+    for metric in metrics:
+        columns.append("Total "+metric)
     
 
     results_arr= np.array(results_arr)
